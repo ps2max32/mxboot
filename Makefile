@@ -97,7 +97,8 @@ $(OUT)/SECRMAN.IMG: $(SECRMAN_IRX) tools/mk-ioprp.py
 	python3 tools/mk-ioprp.py $@ SECRMAN=$<
 
 # iop/secrman, with maxsdk's IOP rules (the IOP gcc, ps2sdk's IOP build files)
-$(OUT)/iop/secrman.irx: $(wildcard iop/secrman/src/* iop/secrman/include/*) iop/secrman/Makefile
+$(OUT)/iop/secrman.irx: $(wildcard iop/secrman/src/* iop/secrman/include/*) iop/secrman/Makefile \
+                        $(PS2MAX)/libs/maxsdk/iop/Rules.mk $(PS2MAX)/libs/maxsdk/iop/iop.mk
 	$(MAKE) -C iop/secrman OUT=$(OUT)/iop EXTRA_CFLAGS=
 
 # ---- the installer --------------------------------------------------------------
