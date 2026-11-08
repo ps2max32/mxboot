@@ -304,14 +304,59 @@ static int config(const char *name, const char *elf) {
   return r;
 }
 
+/* from to to in pieces of buf's size (any file size: a game's ELF from
+   host: to usb0:), then both read again piece by piece and compared */
 static int copy(const char *from, const char *to) {
-  int size = read_file(from, buf, sizeof buf);
-  if (size < 0) {
-    mx_printf("mxboot-install: %s: not there or over %u bytes\n", from, MAX_FILE);
+  int in = mx_fio_open(from, MX_FIO_RDONLY);
+  int size = in < 0 ? -1 : mx_fio_lseek(in, 0, MX_FIO_SEEK_END);
+  if (size < 0 || mx_fio_lseek(in, 0, MX_FIO_SEEK_SET) != 0) {
+    if (in >= 0)
+      mx_fio_close(in);
+    mx_printf("mxboot-install: %s: not there\n", from);
     return 65;
   }
-  int r = put(to, buf, (u32)size);
-  if (!r)
+  int out = mx_fio_open(to, MX_FIO_WRONLY | MX_FIO_CREAT | MX_FIO_TRUNC);
+  if (out < 0) {
+    mx_fio_close(in);
+    mx_printf("mxboot-install: %s: open: %d\n", to, out);
+    return 74;
+  }
+  int r = 0;
+  for (u32 done = 0; done < (u32)size && !r;) {
+    u32 n = (u32)size - done < sizeof buf ? (u32)size - done : sizeof buf;
+    if (mx_fio_read(in, buf, n) != (int)n)
+      r = 65;
+    else if (mx_fio_write(out, buf, n) != 0)
+      r = 74;
+    done += n;
+  }
+  mx_fio_close(in);
+  if (mx_fio_close(out) < 0 && !r)
+    r = 74;
+  if (r) {
+    mx_printf("mxboot-install: %s -> %s: cannot %s it\n", from, to, r == 65 ? "read" : "write");
+    return r;
+  }
+  /* read back */
+  in = mx_fio_open(from, MX_FIO_RDONLY);
+  out = mx_fio_open(to, MX_FIO_RDONLY);
+  if (in < 0 || out < 0 || mx_fio_lseek(out, 0, MX_FIO_SEEK_END) != size ||
+      mx_fio_lseek(out, 0, MX_FIO_SEEK_SET) != 0)
+    r = 75;
+  for (u32 done = 0; done < (u32)size && !r;) {
+    u32 n = (u32)size - done < sizeof buf ? (u32)size - done : sizeof buf;
+    if (mx_fio_read(in, buf, n) != (int)n || mx_fio_read(out, back, n) != (int)n ||
+        memcmp(buf, back, n) != 0)
+      r = 75;
+    done += n;
+  }
+  if (in >= 0)
+    mx_fio_close(in);
+  if (out >= 0)
+    mx_fio_close(out);
+  if (r)
+    mx_printf("mxboot-install: %s: reads back differently\n", to);
+  else
     mx_printf("mxboot-install: %s -> %s (%d bytes)\n", from, to, size);
   return r;
 }

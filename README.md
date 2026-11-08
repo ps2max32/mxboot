@@ -115,7 +115,7 @@ ps2client execee host:mxboot-install.elf <command> ...
 | `update mcN: host:MXBOOT.XLF host:MXBOOT.ELF [force]` | write phase 2, then bind phase 1 to the card and write it to every update path |
 | `boot mcN: <ELF path>` | write `MXOS/BOOT.CFG` |
 | `once mcN: <ELF path>` | write `MXOS/BOOTONCE.CFG` |
-| `copy <from> <to>` | copy a file (`host:`, `mc0:`, `mc1:`), read back and compared |
+| `copy <from> <to>` | copy a file of any size (`host:`, `mc0:`, `mc1:`, `usb0:`, ...) in pieces, read back and compared |
 | `copydir <from> <to>` | the same for every file of a directory |
 | `rm <path>` | remove a file |
 | `list mcN:` | the card's root, the update directories, `MXOS` and the configs |
