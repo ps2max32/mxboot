@@ -99,7 +99,7 @@ make programs   # all but MXBOOT.XLF: no keys needed
   (`sceMcResFailResetAuth`); `SECRMAN_IRX=<irx>` takes another one.
 
 Needs maxsdk, the feature LLVM, kelftool (`tools/kelftool`, built here),
-ps2sdk's IOP headers, `iopfixup` and its prebuilt `secrsif.irx`
+ps2sdk's IOP headers and its prebuilt `secrsif.irx`
 (`PS2MAX_IOP_SDK`, `PS2MAX_IRX`), and Python.
 
 ## Install
