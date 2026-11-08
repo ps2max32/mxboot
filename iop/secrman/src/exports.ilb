@@ -1,0 +1,24 @@
+#IOP-ILB#
+# SECRMAN's exports: its export table (ld.lld --irx-export, first in
+# .text). The entries left out only return.
+L secrman
+V 0103
+F 0000
+E 000 _start
+E 002 _exit
+E 004 SecrSetMcCommandHandler
+E 005 SecrSetMcDevIDHandler
+E 006 SecrAuthCard
+E 007 SecrResetAuthCard
+E 008 SecrCardBootHeader
+E 009 SecrCardBootBlock
+E 010 SecrCardBootFile
+E 011 SecrDiskBootHeader
+E 012 SecrDiskBootBlock
+E 013 SecrDiskBootFile
+E 014 SecrDownloadHeader
+E 015 SecrDownloadBlock
+E 016 SecrDownloadFile
+E 017 SecrDownloadGetKbit
+E 018 SecrDownloadGetKc
+E 019 SecrDownloadGetICVPS2
