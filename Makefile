@@ -1,6 +1,6 @@
 # mxboot: the PS2's memory card boot program, in two phases, and its installer.
 #
-#   make            build/tools/mxboot/:
+#   make            build/apps/mxboot/:
 #                     MXBOOT.XLF          phase 1 (kelf/): the system update, a KELF to
 #                                         be bound to a card; starts MXOS/MXBOOT.ELF
 #                     MXBOOT.ELF          phase 2 (boot/): the configs, the one-shot,
@@ -18,7 +18,7 @@
 all:
 
 PS2MAX  ?= $(abspath $(CURDIR)/../..)
-OUT     ?= $(PS2MAX)/build/tools/mxboot
+OUT     ?= $(PS2MAX)/build/apps/mxboot
 PS2MAX_PS2DEV  ?= $(abspath $(PS2MAX)/../ps2dev/install)
 PS2MAX_IOP_SDK ?= $(PS2MAX_PS2DEV)/ps2sdk
 PS2MAX_IRX     ?= $(PS2MAX_IOP_SDK)/iop/irx

@@ -69,7 +69,7 @@ its own type.
 ## Build
 
 ```
-make            # build/tools/mxboot/
+make            # build/apps/mxboot/
 make programs   # all but MXBOOT.XLF: no keys needed
 ```
 
