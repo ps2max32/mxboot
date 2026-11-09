@@ -2,7 +2,7 @@
 #
 #   make            build/apps/mxboot/:
 #                     MXBOOT.XLF          phase 1 (kelf/): the system update, a KELF to
-#                                         be bound to a card; starts MXOS/MXBOOT.ELF
+#                                         be bound to a card; starts MXBOOT/MXBOOT.ELF
 #                     MXBOOT.ELF          phase 2 (boot/): the configs, the one-shot,
 #                                         the ELF they name (for tests: run it from
 #                                         mxlink with "mc1:" as argument)

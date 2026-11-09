@@ -1,10 +1,11 @@
-/* mxboot phase 2 (MXOS/MXBOOT.ELF): started by phase 1 (kelf/, the
+/* mxboot phase 2 (MXBOOT/MXBOOT.ELF): started by phase 1 (kelf/, the
    "system update" the ROM starts at power-on, installed by mxboot-install).
-   It starts one ELF of the card it booted from, named by a config file:
+   It starts one ELF of the card it booted from, named by a config file in
+   mxboot's directory:
 
-     MXOS/BOOTONCE.CFG  once: removed, then its ELF is started. If that ELF
-                        hangs, the next boot starts the default.
-     MXOS/BOOT.CFG      otherwise: the default.
+     MXBOOT/BOOTONCE.CFG  once: removed, then its ELF is started. If that ELF
+                          hangs, the next boot starts the default.
+     MXBOOT/BOOT.CFG      otherwise: the default.
 
    A config file's first line that is not empty and does not start with '#'
    is the path of the ELF; "mc?:" in it is the card the config is on. The ELF
@@ -33,7 +34,7 @@
 #include <mx/video.h>
 #include <mx/hw/regs.h>
 
-#define CFG_DIR "MXOS/"
+#define CFG_DIR "MXBOOT/"
 #define CFG_ONCE CFG_DIR "BOOTONCE.CFG"
 #define CFG_BOOT CFG_DIR "BOOT.CFG"
 
@@ -42,14 +43,14 @@ extern char __text_start[]; /* our own start: the ELF must end below it */
 
 /* The screen colours (BGCOLOR: 0xBBGGRR) of fail() */
 #define FAIL_NO_CARD 0x0000ffu /* red: no card could be read */
-#define FAIL_NO_CFG 0x00ffffu  /* yellow: no MXOS/BOOT.CFG on it */
+#define FAIL_NO_CFG 0x00ffffu  /* yellow: no MXBOOT/BOOT.CFG on it */
 #define FAIL_NO_ELF 0xff00ffu  /* magenta: its ELF is missing or not one we load */
 
 /* Started with a card in argv[1] (a test from a loader): end with a status
    instead of staying, and with no "exec" in argv[2] check the ELF but do
    not load it: it would go over the loader that runs this (mxlink at
    0x88000). "exec" only from one that is not where the ELF goes
-   (mxlink-high). */
+   (mxkernel-high). */
 static int test, test_exec;
 
 static void fail(u32 colour, const char *why) {

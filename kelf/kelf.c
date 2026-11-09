@@ -1,5 +1,5 @@
 /* mxboot's phase 1: the system update the ROM starts at power-on (the KELF,
-   one copy per model's update path). It starts phase 2, MXOS/MXBOOT.ELF of
+   one copy per model's update path). It starts phase 2, MXBOOT/MXBOOT.ELF of
    the card it booted from (argv[0] names it; else mc0, then mc1), with
    ExecPS2, and does nothing else: phase 2 reads the configs and starts the
    ELF they name.
@@ -19,7 +19,7 @@ typedef unsigned short u16;
 typedef unsigned int u32;
 typedef int s32;
 
-#define PHASE2 "MXOS/MXBOOT.ELF"
+#define PHASE2 "MXBOOT/MXBOOT.ELF"
 
 /* ---- syscalls -------------------------------------------------------------- */
 

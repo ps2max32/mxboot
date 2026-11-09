@@ -2,17 +2,17 @@
    (mxlink). Commands (mcN: is mc0: or mc1:):
 
      update mcN: <MXBOOT.XLF> <MXBOOT.ELF> [force]
-         Write phase 2 (MXBOOT.ELF) to MXOS/MXBOOT.ELF, then bind phase 1 (the
+         Write phase 2 (MXBOOT.ELF) to MXBOOT/MXBOOT.ELF, then bind phase 1 (the
          KELF) to the card and write it as the system update of every model
          with ROM v1.10 or later, all regions (paths[] below). Existing
          update files are kept unless "force": then they are copied to
          host:mxboot-backup-<dir>-<file> first. The IOP is rebooted with the
          open SECRMAN for the binding, so the host is gone from then on: no
          more output, the exit status says how it went (mxlink prints it).
-     boot mcN: <ELF path>     MXOS/BOOT.CFG names that ELF (the default)
-     once mcN: <ELF path>     MXOS/BOOTONCE.CFG names it (the next boot only)
-     copy <from> <to>         copy a file (e.g. host:MXLINK.ELF to
-                              mc1:/MXOS/MXLINK.ELF), read back and compared
+     boot mcN: <ELF path>     MXBOOT/BOOT.CFG names that ELF (the default)
+     once mcN: <ELF path>     MXBOOT/BOOTONCE.CFG names it (the next boot only)
+     copy <from> <to>         copy a file (e.g. host:MXKERNEL.ELF to
+                              mc1:/MXOS/MXKERNEL.ELF), read back and compared
      copydir <from> <to>      the same for each file of a directory
      rm <path>                remove a file
      format mcN: erase        format the card: everything on it is gone
@@ -218,9 +218,9 @@ static int update(const char *kelf_path, const char *elf_path, int force, int dr
      without it */
   if (!dry) {
     char dir[16];
-    card(dir, sizeof dir, "MXOS");
+    card(dir, sizeof dir, "MXBOOT");
     mx_fio_mkdir(dir, 0777); /* there already: fine */
-    card(path, sizeof path, "MXOS/MXBOOT.ELF");
+    card(path, sizeof path, "MXBOOT/MXBOOT.ELF");
     int r = copy(elf_path, path);
     if (r)
       return r;
@@ -290,7 +290,7 @@ static int config(const char *name, const char *elf) {
   if (!card_ready())
     return 67;
   char path[64], dir[16];
-  card(dir, sizeof dir, "MXOS");
+  card(dir, sizeof dir, "MXBOOT");
   mx_fio_mkdir(dir, 0777); /* there already: fine */
   card(path, sizeof path, name);
   u32 n = (u32)strlen(elf);
@@ -413,8 +413,8 @@ static int list(void) {
   list_dir("");
   for (u32 i = 0; i < NDIRS; i++)
     list_dir(dirs[i]);
-  list_dir("MXOS");
-  static const char *const cfgs[] = {"MXOS/BOOT.CFG", "MXOS/BOOTONCE.CFG"};
+  list_dir("MXBOOT");
+  static const char *const cfgs[] = {"MXBOOT/BOOT.CFG", "MXBOOT/BOOTONCE.CFG"};
   char path[64];
   for (int i = 0; i < 2; i++) {
     card(path, sizeof path, cfgs[i]);
@@ -535,9 +535,9 @@ static int run(int argc, char **argv) {
   if (!strcmp(cmd, "bindtest") && argc == 4)
     return update(argv[3], 0, 0, 1);
   if (!strcmp(cmd, "boot") && argc == 4)
-    return config("MXOS/BOOT.CFG", argv[3]);
+    return config("MXBOOT/BOOT.CFG", argv[3]);
   if (!strcmp(cmd, "once") && argc == 4)
-    return config("MXOS/BOOTONCE.CFG", argv[3]);
+    return config("MXBOOT/BOOTONCE.CFG", argv[3]);
   if (!strcmp(cmd, "list") && argc == 3)
     return list();
   if (!strcmp(cmd, "mods") && argc == 3)
