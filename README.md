@@ -90,7 +90,11 @@ make programs   # all but MXBOOT.XLF: no keys needed
   phase 2 from the card, which starts its config's ELF. With a one-shot
   naming a program at 0x100000 (not the kernel, whose code the kernel keeps
   read-only) the program's output comes back to the host.
-- `mxboot-install.elf`: the installer.
+- `mxboot-install.elf`: the installer, a standalone ELF (all commands; `update`
+  needs it).
+- `mxboot-install-mxos.elf`: the same as an MXOS program, which the mx kernel
+  runs once it starts nothing else: every command but `update`, `bindtest`
+  and `log` (those reboot the IOP with SECRMAN).
 - `SECRMAN.IMG`: the IOPRP image (`tools/mk-ioprp.py`) with the open
   SECRMAN, built into the installer. The SECRMAN is `iop/secrman`, the FMCB
   installer's (v0.987, AFL 2.0), built here by clang and ld.lld with
@@ -104,11 +108,14 @@ ps2sdk's IOP headers and its prebuilt `secrsif.irx`
 
 ## Install
 
-Run the installer from the kernel, with the files on the host:
+Run the installer from a loader with `host:`, with the files on the host:
 
 ```
 ps2client execee host:mxboot-install.elf <command> ...
 ```
+
+Under the mx kernel, `mxboot-install-mxos.elf` takes the same commands but
+`update`, `bindtest` and `log`.
 
 | Command | Does |
 |---|---|

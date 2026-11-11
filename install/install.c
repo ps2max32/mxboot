@@ -20,6 +20,11 @@
      list mcN:                what of mxboot is on the card
      remove mcN:              remove the update files and their directories
 
+   mxboot-install-mxos.elf is the same as an MXOS program (mx OS plan 2h: the
+   kernel runs only those): all but update, bindtest and log, which reboot
+   the IOP with SECRMAN or read a log at a fixed physical address: those
+   are the standalone mxboot-install.elf's (from a legacy loader).
+
    Exit status: 0 done, 64 usage, 65 a file to read is not there or too big,
    66 the card has update files already (no "force"), 67 the card cannot be
    read, 68 the backup failed, 70 the IOP did not come back from its
@@ -35,9 +40,11 @@
 #include <mx/string.h>
 #include <mx/thread.h>
 
+#ifndef MXBOOT_INSTALL_MXOS
 #include "secr.h"
 
 extern const u8 secrman_img[], secrman_img_end[], secrsif_irx[], secrsif_irx_end[];
+#endif
 
 /* The system update paths of the models with ROM v1.10 and later (the list
    of KELFBinder, israpps). The first models (SCPH-10000, SCPH-15000: ROM
@@ -67,6 +74,11 @@ static int port; /* of the card: 0 or 1 */
 /* After the IOP reboot there is no host: what happens goes into a log in EE
    memory above the programs' (the next run's "log" prints it), as pairs of
    a step and a value. */
+#ifdef MXBOOT_INSTALL_MXOS
+static void diag(u32 step, s32 value) {
+  (void)step, (void)value;
+}
+#else
 #define DIAG ((volatile u32 *)0x21F00000u) /* 0x1F00000 uncached (user mode: not kseg1) */
 #define DIAG_MAGIC 0x4d58424cu            /* "MXBL" */
 #define DIAG_MAX 120
@@ -82,6 +94,7 @@ static void diag(u32 step, s32 value) {
     DIAG[1] = n + 1;
   }
 }
+#endif
 
 static void cat(char *out, u32 room, const char *a, const char *b, const char *c) {
   u32 n = 0;
@@ -166,6 +179,7 @@ static int card_ready(void) {
   return 0;
 }
 
+#ifndef MXBOOT_INSTALL_MXOS
 static int load(const u8 *start, const u8 *end, const char *name) {
   int res = 0;
   int id = mx_iop_load_module_buffer(start, (u32)(end - start), 0, 0, &res);
@@ -283,6 +297,8 @@ static int update(const char *kelf_path, const char *elf_path, int force, int dr
   }
   return 0;
 }
+
+#endif /* !MXBOOT_INSTALL_MXOS */
 
 /* ---- the others ---------------------------------------------------------- */
 
@@ -530,10 +546,17 @@ static int run(int argc, char **argv) {
     return argc == 4 ? copy_dir(argv[2], argv[3]) : usage();
   if (slot_arg(argv[2]) < 0)
     return usage();
+#ifdef MXBOOT_INSTALL_MXOS
+  if (!strcmp(cmd, "update") || !strcmp(cmd, "bindtest")) {
+    mx_printf("mxboot-install: %s reboots the IOP: the standalone mxboot-install.elf has it\n", cmd);
+    return 64;
+  }
+#else
   if (!strcmp(cmd, "update") && (argc == 5 || (argc == 6 && !strcmp(argv[5], "force"))))
     return update(argv[3], argv[4], argc == 6, 0);
   if (!strcmp(cmd, "bindtest") && argc == 4)
     return update(argv[3], 0, 0, 1);
+#endif
   if (!strcmp(cmd, "boot") && argc == 4)
     return config("MXBOOT/BOOT.CFG", argv[3]);
   if (!strcmp(cmd, "once") && argc == 4)
@@ -544,6 +567,7 @@ static int run(int argc, char **argv) {
     return mods();
   if (!strcmp(cmd, "format") && argc == 4 && !strcmp(argv[3], "erase"))
     return format();
+#ifndef MXBOOT_INSTALL_MXOS
   if (!strcmp(cmd, "log") && argc == 3) {
     if (DIAG[0] != DIAG_MAGIC) {
       mx_printf("mxboot-install: no log\n");
@@ -554,6 +578,7 @@ static int run(int argc, char **argv) {
                 (int)DIAG[3 + 2 * i]);
     return 0;
   }
+#endif
   if (!strcmp(cmd, "remove") && argc == 3)
     return remove_update();
   return usage();

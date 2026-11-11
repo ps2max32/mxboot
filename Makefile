@@ -7,6 +7,7 @@
 #                                         the ELF they name (for tests: run it from
 #                                         mxlink with "mc1:" as argument)
 #                     mxboot-install.elf  the installer (see README.md)
+#                     mxboot-install-mxos.elf  the same as an MXOS program (no update)
 #                     SECRMAN.IMG         the IOPRP image with the open SECRMAN
 #                                         (iop/secrman, clang and lld)
 #   make programs   all of it but MXBOOT.XLF (no keys needed)
@@ -45,7 +46,7 @@ KELF_LDFLAGS = --defsym=__mx_base=0x1F80000 --defsym=__mx_top=0x1F90000 \
 
 all: programs $(OUT)/MXBOOT.XLF
 # what needs no keys
-programs: $(OUT)/MXBOOT.ELF $(OUT)/mxboot-kelf.elf $(OUT)/mxboot-install.elf $(OUT)/SECRMAN.IMG \
+programs: $(OUT)/MXBOOT.ELF $(OUT)/mxboot-kelf.elf $(OUT)/mxboot-install.elf $(OUT)/mxboot-install-mxos.elf $(OUT)/SECRMAN.IMG \
           $(OUT)/iop/secrman.irx
 
 $(OUT)/obj/%.o: %.c $(MX_HDRS) $(wildcard install/*.h)
@@ -117,6 +118,18 @@ $(OUT)/obj/install/blobs.o: install/blobs.S $(INSTALL_IRX)
 
 $(OUT)/mxboot-install.elf: $(INSTALL_OBJS) $(MX_LIB) $(MX_CRT0)
 	$(call link,$@,$(MX_CRT0) $(INSTALL_OBJS) $(MX_LIB))
+
+# the same as an MXOS program, which the kernel can start (mx OS plan 2h): all
+# but update, bindtest and log (the IOP rebooted with SECRMAN: the standalone
+# one's, from a legacy loader)
+INSTALL_MXOS_OBJS = $(OUT)/obj-mxos/install/install.o
+$(OUT)/obj-mxos/%.o: %.c $(MX_HDRS) $(wildcard install/*.h)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -DMXBOOT_INSTALL_MXOS -c $< -o $@
+$(OUT)/mxboot-install-mxos.elf: MX_TARGET = mxos
+$(OUT)/mxboot-install-mxos.elf: $(INSTALL_MXOS_OBJS) $(MAXSDK_OUT)/libmxk.a $(MX_CRT0)
+	$(call link,$@,$(MX_CRT0) $(INSTALL_MXOS_OBJS) $(MAXSDK_OUT)/libmxk.a)
+$(MAXSDK_OUT)/libmxk.a: $(MX_LIB)
 
 clean:
 	rm -rf $(OUT)
