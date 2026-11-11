@@ -30,6 +30,8 @@ PS2KEYS  ?= $(PS2MAX)/PS2KEYS.dat
 MAXSDK_OUT = $(OUT)/maxsdk
 export EXTRA_CFLAGS = -Os -ffunction-sections -fdata-sections
 
+# started by the BIOS: standalone ELFs (libmx)
+MX_TARGET ?= standalone
 include $(PS2MAX)/libs/maxsdk/mk/maxsdk.mk
 
 # phase 2: in the top 256 KiB, so the ELF it starts may be anywhere below
