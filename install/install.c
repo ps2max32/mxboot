@@ -34,7 +34,6 @@
    differently. */
 
 #include <mx/mx.h>
-#include <mx/bios.h>
 #include <mx/iop.h>
 #include <mx/sif.h>
 #include <mx/string.h>
