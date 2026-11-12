@@ -470,9 +470,10 @@ static int remove_update(void) {
    port and slot. Everything on the card is gone. */
 #define MCSERV_SID 0x80000400u
 static int format(void) {
-  static struct mx_sif_client mc;
-  static s32 desc[12] __attribute__((aligned(64))); /* mcDescParam_t */
-  static s32 res[4] __attribute__((aligned(64)));
+  /* sent and answered by SIF DMA: core (an MXOS program's statics are VM) */
+  static struct mx_sif_client mc MX_CORE_DATA;
+  static s32 desc[12] __attribute__((aligned(64))) MX_CORE_DATA; /* mcDescParam_t */
+  static s32 res[4] __attribute__((aligned(64))) MX_CORE_DATA;
   volatile s32 *r = MX_UNCACHED(res);
   if (mx_sif_bind_tries(&mc, MCSERV_SID, 100) < 0 || !mc.server) {
     mx_printf("mxboot-install: no MCSERV on the IOP\n");
@@ -529,10 +530,27 @@ static int usage(void) {
   return 64;
 }
 
+#ifdef MXBOOT_INSTALL_MXOS
+/* The memory card's drivers: the kernel's, on the PS2 (it loads them for
+   its own files); where the IOP has none (the kernel's PCSX2 build, which
+   keeps PCSX2's IOP), the ROM's. */
+static void mc_drivers(void) {
+  static struct mx_sif_client mc MX_CORE_DATA;
+  if (mx_sif_bind_tries(&mc, 0x80000400u /* MCSERV */, 2) == 0 && mc.server)
+    return;
+  int a = mx_iop_load_module("rom0:SIO2MAN"), b = mx_iop_load_module("rom0:MCMAN");
+  int c = mx_iop_load_module("rom0:MCSERV");
+  mx_printf("mxboot-install: the ROM's card drivers: SIO2MAN %d, MCMAN %d, MCSERV %d\n", a, b, c);
+}
+#endif
+
 static int run(int argc, char **argv) {
   if (argc < 3)
     return usage();
   const char *cmd = argv[1];
+#ifdef MXBOOT_INSTALL_MXOS
+  mc_drivers();
+#endif
   if (!strcmp(cmd, "copy"))
     return argc == 4 ? copy(argv[2], argv[3]) : usage();
   if (!strcmp(cmd, "rm") && argc == 3) {
